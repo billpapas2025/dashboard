@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
+import altair as alt
+import pandas as pd
 
 # Título del dashboard
 st.title('Dashboard Matemático Avanzado')
@@ -8,7 +9,7 @@ st.title('Dashboard Matemático Avanzado')
 # Opciones del menú lateral
 option = st.sidebar.selectbox(
     'Seleccione un algoritmo:',
-    ('Búsqueda Binaria', 'Números Primos', 'Máximo Común Divisor (MCD)', 'Secuencia de Fibonacci')
+    ('Búsqueda Binaria', 'Números Primos')
 )
 
 # Función para la búsqueda binaria
@@ -38,19 +39,6 @@ def prime_numbers(n):
         num += 1
     return primes
 
-# Función para calcular el MCD usando el Algoritmo de Euclides
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
-
-# Función para generar la secuencia de Fibonacci
-def fibonacci(n):
-    fib_seq = [0, 1]
-    while len(fib_seq) < n:
-        fib_seq.append(fib_seq[-1] + fib_seq[-2])
-    return fib_seq[:n]
-
 # Contenido según la opción seleccionada
 if option == 'Búsqueda Binaria':
     st.subheader('Búsqueda Binaria')
@@ -71,7 +59,6 @@ if option == 'Búsqueda Binaria':
                 st.error('Por favor, ingrese una lista válida de números enteros separados por espacios.')
         else:
             st.error('La lista de números no puede estar vacía.')
-
 elif option == 'Números Primos':
     st.subheader('Números Primos')
     n = st.number_input('Ingrese la cantidad de números primos que desea calcular:', step=1)
@@ -81,43 +68,20 @@ elif option == 'Números Primos':
             primes = prime_numbers(int(n))
             st.write(f'Los primeros {int(n)} números primos son:')
             st.write(primes)
-            # Graficar los números primos
-            fig, ax = plt.subplots()
-            ax.plot(primes, marker='o')
-            ax.set_title(f'Gráfico de los primeros {int(n)} números primos')
-            ax.set_xlabel('Índice')
-            ax.set_ylabel('Números Primos')
-            st.pyplot(fig)
-        else:
-            st.error('Por favor, ingrese un número mayor que 0.')
-
-elif option == 'Máximo Común Divisor (MCD)':
-    st.subheader('Máximo Común Divisor (MCD)')
-    a = st.number_input('Ingrese el primer número:', step=1)
-    b = st.number_input('Ingrese el segundo número:', step=1)
-    
-    if st.button('Calcular MCD'):
-        if a > 0 and b > 0:
-            result = gcd(int(a), int(b))
-            st.success(f'El MCD de {int(a)} y {int(b)} es {result}.')
-        else:
-            st.error('Por favor, ingrese números mayores que 0.')
-
-elif option == 'Secuencia de Fibonacci':
-    st.subheader('Secuencia de Fibonacci')
-    n = st.number_input('Ingrese la cantidad de términos que desea calcular:', step=1)
-    
-    if st.button('Calcular'):
-        if n > 0:
-            fib_seq = fibonacci(int(n))
-            st.write(f'Los primeros {int(n)} términos de la secuencia de Fibonacci son:')
-            st.write(fib_seq)
-            # Graficar la secuencia de Fibonacci
-            fig, ax = plt.subplots()
-            ax.plot(fib_seq, marker='o')
-            ax.set_title(f'Gráfico de los primeros {int(n)} términos de la secuencia de Fibonacci')
-            ax.set_xlabel('Índice')
-            ax.set_ylabel('Fibonacci')
-            st.pyplot(fig)
+            
+            # Crear un DataFrame con los números primos
+            df = pd.DataFrame({'Primos': primes})
+            df.reset_index(inplace=True)
+            df.rename(columns={'index': 'Posición'}, inplace=True)
+            
+            # Crear un gráfico de Altair
+            chart = alt.Chart(df).mark_line(point=True).encode(
+                x='Posición',
+                y='Primos'
+            ).properties(
+                title='Primeros N Números Primos'
+            )
+            
+            st.altair_chart(chart, use_container_width=True)
         else:
             st.error('Por favor, ingrese un número mayor que 0.')
